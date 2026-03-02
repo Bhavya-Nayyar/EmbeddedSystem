@@ -1,1 +1,3 @@
 In the first project, I blinked an LED by making appropriate connections on the breadboard along with the Arduino Uno R3. I wrote the program in Baremetal C and didn't use Arduino's libraries or the Arduino IDE. I used avr-gcc to compile and convert the C code into Assembly Code to generate the .elf file. Then I generated the .hex file using avr-objcopy. And then I finally flashed the program into the Arduino using avrdude. 
+
+In the second project, I controlled the LED with a button. If the button is kept pressed, the LED stays on. If we release the button, the LED switches off. A 10 k Ohm pull-down resistor was used to prevent floating values in D2 (PD2) pin.
