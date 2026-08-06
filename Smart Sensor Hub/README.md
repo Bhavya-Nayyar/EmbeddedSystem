@@ -47,7 +47,7 @@ The project emphasizes modular firmware architecture, FreeRTOS-based multitaskin
 
 ## Software
 
-* ESP-IDF v6.x
+* ESP-IDF v6.0.1
 * FreeRTOS
 * Visual Studio Code
 * Espressif IDF Extension
