@@ -89,7 +89,6 @@ Smart-Sensor-Hub/
 │   └── ...
 │
 ├── README.md
-└── LICENSE
 ```
 
 ---
