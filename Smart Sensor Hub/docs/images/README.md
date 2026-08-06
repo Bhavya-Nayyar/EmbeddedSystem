@@ -1,1 +1,1 @@
-Project mmages.
+Project images.
