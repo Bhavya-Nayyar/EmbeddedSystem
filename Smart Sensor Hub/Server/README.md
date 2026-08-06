@@ -1,1 +1,1 @@
-The nodejs server along with the index.html file. Used as a simple dashboard where the ESP transfers the sensor values via Wi-Fi to thie webpage, hosted on the localhost server and updates the values accordingly.
+The nodejs server along with the index.html file. Used as a simple dashboard where the ESP transfers the sensor values via Wi-Fi to the webpage, hosted on the localhost server and updates the values accordingly.
