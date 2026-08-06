@@ -8,6 +8,8 @@ The project emphasizes modular firmware architecture, FreeRTOS-based multitaskin
 
 ---
 
+
+
 ## Features
 
 * Real-time temperature measurement using a thermistor
@@ -319,28 +321,3 @@ http://<YOUR_PC_IP_ADDRESS>:3000
 * Device configuration through the web interface
 
 ---
-
-## Learning Outcomes
-
-This project demonstrates practical experience with:
-
-* Embedded C
-* ESP-IDF
-* FreeRTOS
-* GPIO
-* ADC
-* I2C
-* SPI
-* SD Card interfacing
-* Wi-Fi networking
-* HTTP communication
-* JSON serialization
-* Multitasking
-* Mutex synchronization
-* Modular firmware design
-* Client-server communication
-* Embedded IoT system development
-
----
-
-Embedded Systems | Firmware Development | IoT
