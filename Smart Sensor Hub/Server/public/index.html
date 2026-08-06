@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>ESP32 Sensor Dashboard</title>
+
+<script src="/socket.io/socket.io.js"></script>
+
+</head>
+
+<body>
+
+<h2>ESP32 Sensor Dashboard</h2>
+
+<p>Temperature :
+<span id="temp">--</span></p>
+
+<p>Humidity :
+<span id="hum">--</span></p>
+
+<p>Thermistor :
+<span id="therm">--</span></p>
+
+<p>PIR :
+<span id="pir">--</span></p>
+
+<p>Sound :
+<span id="sound">--</span></p>
+
+<script>
+
+const socket = io();
+
+socket.on("sensor", function(data){
+
+document.getElementById("temp").innerText=data.temperature;
+document.getElementById("hum").innerText=data.humidity;
+document.getElementById("therm").innerText=data.thermistor;
+document.getElementById("pir").innerText=data.pir;
+document.getElementById("sound").innerText=data.sound;
+
+});
+
+</script>
+
+</body>
+
+</html>
