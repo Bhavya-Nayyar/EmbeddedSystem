@@ -8,14 +8,6 @@ The project emphasizes modular firmware architecture, FreeRTOS-based multitaskin
 
 ---
 
-## Demo Video
-
-## Demo Video
-
-https://github.com/Bhavya-Nayyar/Smart Sensor Hub/blob/main/docs/demo_video/Smart Sensor Hub compressed-2.mp4
-
----
-
 ## Features
 
 * Real-time temperature measurement using a thermistor
