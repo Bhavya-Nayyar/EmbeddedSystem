@@ -11,8 +11,6 @@
 #include "FOTA.h"
 #include "stdio.h"
 
-/* Bump this manually before each OTA build so the LED blink rate
-   and OLED boot message reflect which firmware is actually running. */
 #define FW_VERSION 4
 
 static const char *TAG = "Wi-Fi";
@@ -20,9 +18,6 @@ static const char *TAG = "Wi-Fi";
 EventGroupHandle_t s_wifi_event_group;
 static int s_retry_num = 0;
 
-/* Defined here, referenced extern from FOTA.c. Set true just
-   before FOTA deliberately stops WiFi and restarts, so this
-   handler knows not to attempt a reconnect. */
 volatile bool g_ota_restarting = false;
 
 #define WIFI_CONNECTED_BIT BIT0
@@ -142,7 +137,6 @@ void app_main(void)
     }
     ESP_ERROR_CHECK(ret);
 
-    /* Must run before anything that could crash. */
     fota_validate_running_app();
 
     oled_init_bus();

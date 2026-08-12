@@ -8,15 +8,12 @@
 
 static const char *TAG = "LED";
 
-/* Index 0 unused (versions start at 1). Add one entry per
-   version you plan to flash OTA. Values beyond the table clamp
-   to the last (slowest) entry. */
 static const int blink_ms_by_version[] = {
     0,
-    1000,  /* version 1: 1 Hz */
-    500,   /* version 2: fast */
-    200,   /* version 3: very fast */
-    50     /*version 4*/
+    1000,  
+    500,   
+    200,   
+    50     
 };
 
 static void led_task(void *arg)

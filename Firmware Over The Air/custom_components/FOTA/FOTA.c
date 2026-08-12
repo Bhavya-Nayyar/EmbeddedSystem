@@ -11,10 +11,6 @@ static const char *TAG = "FOTA";
 
 #define OTA_BUFFER 1024
 
-/* Set by ota_func just before the deliberate WiFi-stop + restart,
-   so main.c's WiFi event handler can check it and skip the
-   reconnect-on-disconnect logic during shutdown. Declared extern
-   here; main.c owns the actual variable. */
 extern volatile bool g_ota_restarting;
 
 void fota_validate_running_app(void)
@@ -26,9 +22,6 @@ void fota_validate_running_app(void)
     {
         if (ota_state == ESP_OTA_IMG_PENDING_VERIFY)
         {
-            /* Replace with a real self-test (sensor init OK, WiFi
-               reachable, etc) if you want actual rollback protection
-               rather than an unconditional pass. */
             bool self_test_passed = true;
 
             if (self_test_passed)
@@ -40,7 +33,6 @@ void fota_validate_running_app(void)
             {
                 ESP_LOGE(TAG, "Self-test failed, rolling back");
                 esp_ota_mark_app_invalid_rollback_and_reboot();
-                /* does not return */
             }
         }
     }
