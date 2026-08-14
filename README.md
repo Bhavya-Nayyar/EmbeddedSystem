@@ -10,8 +10,6 @@ An ESP32-based sensor monitoring system that integrates multiple sensors and per
 
 **Technologies:** ESP32 · ESP-IDF · FreeRTOS · Wi-Fi · I2C · SPI
 
-[View Smart Sensor Hub](https://github.com/Bhavya-Nayyar/EmbeddedSystem/blob/main/Smart%20Sensor%20Hub)
-
 ---
 
 ### 2. Firmware Over-The-Air (FOTA)
@@ -19,8 +17,6 @@ An ESP32-based sensor monitoring system that integrates multiple sensors and per
 An ESP32-based FOTA system that downloads firmware over HTTP and updates the device using dual OTA partitions.
 
 **Technologies:** ESP32 · ESP-IDF · HTTP · OTA · CMake
-
-[View FOTA Project](https://github.com/Bhavya-Nayyar/EmbeddedSystem/blob/main/Firmware_Over_The_Air)
 
 ---
 
@@ -31,8 +27,6 @@ A bare-metal embedded game built on the ATmega328P that combines timer-based gam
 The game demonstrates low-level AVR firmware development, GPIO control, timer-based timing, button and tilt-sensor input, LDR-based interaction, shift-register-driven display control, and hardware feedback.
 
 **Technologies:** ATmega328P · AVR-GCC · Embedded C · GPIO · Timers · 7-Segment Display · Shift Register · LDR · Tilt Sensor · Buzzer
-
-[View Fight the Timer](https://github.com/Bhavya-Nayyar/EmbeddedSystem/tree/main/Fight%20The%20Timer)
 
 ---
 
