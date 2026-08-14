@@ -10,7 +10,7 @@ An ESP32-based sensor monitoring system that integrates multiple sensors and per
 
 **Technologies:** ESP32 · ESP-IDF · FreeRTOS · Wi-Fi · I2C · SPI
 
-[View Smart Sensor Hub](./Smart%20Sensor%20Hub)
+[View Smart Sensor Hub](https://github.com/Bhavya-Nayyar/EmbeddedSystem/blob/main/Smart%20Sensor%20Hub)
 
 ---
 
@@ -20,7 +20,19 @@ An ESP32-based FOTA system that downloads firmware over HTTP and updates the dev
 
 **Technologies:** ESP32 · ESP-IDF · HTTP · OTA · CMake
 
-[View FOTA Project](./Firmware_Over_The_Air)
+[View FOTA Project](https://github.com/Bhavya-Nayyar/EmbeddedSystem/blob/main/Firmware_Over_The_Air)
+
+---
+
+### 3. Fight the Timer
+
+A bare-metal embedded game built on the ATmega328P that combines timer-based gameplay with physical inputs, sensors, LEDs, a 7-segment display, and a buzzer.
+
+The game demonstrates low-level AVR firmware development, GPIO control, timer-based timing, button and tilt-sensor input, LDR-based interaction, shift-register-driven display control, and hardware feedback.
+
+**Technologies:** ATmega328P · AVR-GCC · Embedded C · GPIO · Timers · 7-Segment Display · Shift Register · LDR · Tilt Sensor · Buzzer
+
+[View Fight the Timer](https://github.com/Bhavya-Nayyar/EmbeddedSystem/tree/main/Fight%20The%20Timer)
 
 ---
 
@@ -31,21 +43,24 @@ EmbeddedSystem/
 │
 ├── Smart Sensor Hub/
 │
-└── Firmware_Over_The_Air/
+├── Firmware_Over_The_Air/
+│
+└── Fight The Timer/
 ```
 
 ## Tools & Technologies
 
 * C / Embedded C
+* ATmega328P / AVR
 * ESP32
 * ESP-IDF
 * FreeRTOS
+* GPIO
+* Timers
+* ADC
 * Wi-Fi
 * I2C / SPI / UART
+* Sensors & Peripherals
 * Git & GitHub
 * CMake / Ninja
-
-## Purpose
-
-This repository contains hands-on embedded systems projects focused on learning and demonstrating practical **firmware development, hardware interfacing, communication, RTOS concepts, and system-level design**.
-
+* AVR-GCC
