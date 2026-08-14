@@ -195,29 +195,7 @@ The project uses:
 * avrdude
 * GNU Make
 
-The program directly manipulates ATmega328P registers such as:
-
-```c
-DDRD
-DDRB
-PORTD
-PORTB
-PIND
-```
-
-It does **not** use:
-
-* `Arduino.h`
-* `pinMode()`
-* `digitalWrite()`
-* `digitalRead()`
-* Arduino libraries
-
-Timing currently uses AVR-LibC's:
-
-```c
-_delay_ms()
-```
+The program directly manipulates ATmega328P registers.
 
 ## Project Structure
 
@@ -234,37 +212,6 @@ FIGHT THE TIMER GAME/
 ├── Makefile
 └── README.md
 ```
-
-### `src/main.c`
-
-Contains the complete embedded application, including:
-
-* GPIO configuration
-* Shift-register communication
-* 7-segment display control
-* Button handling
-* Tilt detection
-* RGB LED control
-* Buzzer control
-* Game logic
-* Timing
-
-### `Makefile`
-
-Automates compilation, HEX generation, uploading, and cleaning.
-
-The current configuration targets:
-
-```text
-MCU:   ATmega328P
-Clock: 16 MHz
-Port:  COM6
-Baud:  115200
-```
-
-### `.vscode/c_cpp_properties.json`
-
-Provides VS Code with the configuration required for C/C++ code navigation, IntelliSense, and AVR development.
 
 ## Build System
 
@@ -337,61 +284,6 @@ This removes:
 ```text
 src/main.elf
 src/main.hex
-```
-
-## Makefile Configuration
-
-The important configuration is:
-
-```make
-MCU = atmega328p
-F_CPU = 16000000UL
-PORT = COM6
-BAUD = 115200
-```
-
-The compiler flags are:
-
-```make
-CFLAGS = -Wall -Os -DF_CPU=$(F_CPU) -mmcu=$(MCU)
-```
-
-Where:
-
-* `-Wall` enables common compiler warnings.
-* `-Os` optimizes for code size.
-* `-DF_CPU=16000000UL` tells AVR-LibC that the MCU clock is 16 MHz.
-* `-mmcu=atmega328p` targets the ATmega328P.
-
-## Requirements
-
-### Software
-
-Install the AVR toolchain and Make:
-
-```text
-avr-gcc
-avr-objcopy
-avrdude
-make
-```
-
-A VS Code installation with the appropriate C/C++ tooling can be used for development.
-
-### Hardware
-
-```text
-Arduino Uno
-7-segment display
-Shift register
-Push button
-Tilt sensor
-RGB LED
-Buzzer
-S8050 transistor
-Resistors
-Breadboard
-Jumper wires
 ```
 
 ## Current Implementation Limitations
