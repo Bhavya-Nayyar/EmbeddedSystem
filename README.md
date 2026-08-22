@@ -30,6 +30,16 @@ The game demonstrates low-level AVR firmware development, GPIO control, timer-ba
 
 ---
 
+### 4. STM32 UART Driver
+
+A register-level UART driver developed for the STM32F446RE. The driver configures the UART peripheral and its GPIO interface directly through STM32 registers and implements interrupt-driven reception with a ring buffer.
+
+The project demonstrates low-level STM32 firmware development, peripheral configuration, interrupt handling, UART communication, and buffered data reception without relying on the STM32 HAL UART driver.
+
+**Technologies:** STM32F446RE · Embedded C · CMSIS · Register-Level Programming · UART · Interrupts · Ring Buffer · CMake
+
+---
+
 ## Repository Structure
 
 ```text
@@ -39,22 +49,31 @@ EmbeddedSystem/
 │
 ├── Firmware_Over_The_Air/
 │
-└── Fight The Timer/
+├── Fight The Timer/
+│
+└── UART_Driver/
 ```
 
 ## Tools & Technologies
 
 * C / Embedded C
 * ATmega328P / AVR
+* STM32F446RE
 * ESP32
+* CMSIS
 * ESP-IDF
 * FreeRTOS
 * GPIO
 * Timers
 * ADC
+* UART
+* I2C / SPI
+* Interrupts
+* Ring Buffers
 * Wi-Fi
-* I2C / SPI / UART
+* OTA
 * Sensors & Peripherals
 * Git & GitHub
 * CMake / Ninja
 * AVR-GCC
+* ARM GNU Toolchain
