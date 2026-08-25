@@ -62,6 +62,3 @@ Possible extensions include:
 8. Support multiple chip-select lines
 9. Connect the driver to an actual SPI sensor/display
 10. Compare register-level implementation with STM32 LL and HAL implementations
-
-* STM32F4 CMSIS device headers
-
