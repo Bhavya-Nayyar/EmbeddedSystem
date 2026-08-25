@@ -53,5 +53,3 @@ EmbeddedSystem/
 │
 └── UART_Driver/
 ```
-
-* ARM GNU Toolchain
