@@ -54,26 +54,4 @@ EmbeddedSystem/
 └── UART_Driver/
 ```
 
-## Tools & Technologies
-
-* C / Embedded C
-* ATmega328P / AVR
-* STM32F446RE
-* ESP32
-* CMSIS
-* ESP-IDF
-* FreeRTOS
-* GPIO
-* Timers
-* ADC
-* UART
-* I2C / SPI
-* Interrupts
-* Ring Buffers
-* Wi-Fi
-* OTA
-* Sensors & Peripherals
-* Git & GitHub
-* CMake / Ninja
-* AVR-GCC
 * ARM GNU Toolchain
