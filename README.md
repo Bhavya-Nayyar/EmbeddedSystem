@@ -65,6 +65,21 @@ The project demonstrates SPI peripheral configuration, GPIO alternate-function m
 
 ---
 
+### 6. STM32 I2C Driver
+
+A register-level I2C master driver developed for the STM32F446RE. The driver configures I2C1, GPIO, alternate functions, and I2C timing directly through CMSIS register definitions without using the STM32 HAL I2C API.
+
+The project demonstrates I2C peripheral configuration, master transmit and receive operations, 7-bit addressing, START/STOP conditions, ACK/NACK handling, and polling-based communication.
+
+**Technologies:** STM32F446RE · Embedded C · CMSIS · Register-Level Programming · I2C · GPIO · CMake
+
+---
+
+## Repository Structure
+
+[svg](https://github.com/Bhavya-Nayyar/EmbeddedSystem#repository-structure)
+
+
 ## Repository Structure
 
 ```text
@@ -79,3 +94,5 @@ EmbeddedSystem/
 ├── UART_Driver/
 │
 └── SPI_Driver/
+│
+└── I2C_Driver/
