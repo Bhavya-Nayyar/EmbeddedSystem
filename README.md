@@ -77,11 +77,6 @@ The project demonstrates I2C peripheral configuration, master transmit and recei
 
 ## Repository Structure
 
-[svg](https://github.com/Bhavya-Nayyar/EmbeddedSystem#repository-structure)
-
-
-## Repository Structure
-
 ```text
 EmbeddedSystem/
 │
