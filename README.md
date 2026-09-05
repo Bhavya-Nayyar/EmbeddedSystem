@@ -75,6 +75,14 @@ The project demonstrates I2C peripheral configuration, master transmit and recei
 
 ---
 
+### 7. STM32–ESP32 CAN Bus Communication
+
+A two-node CAN bus demo connecting an STM32F446RE and an ESP32 over a physical CAN bus at 250 kbps. The STM32 side uses HAL-based bxCAN with polling reception, while the ESP32 side uses the newer esp_twai driver with interrupt-driven reception and automatic bus-off recovery.
+
+The project demonstrates CAN peripheral configuration, bit-timing calculation, standard-ID filtering, and cross-vendor CAN interoperability between two different CAN controller implementations.
+
+**Technologies:** STM32F446RE · ESP32 · Embedded C · HAL · ESP-IDF · CAN/TWAI · CMake
+
 ## Repository Structure
 
 ```text
@@ -88,6 +96,8 @@ EmbeddedSystem/
 │
 ├── UART_Driver/
 │
-└── SPI_Driver/
+├── SPI_Driver/
 │
-└── I2C_Driver/
+├── I2C_Driver/
+│
+└── CAN_Bus_Communication/
