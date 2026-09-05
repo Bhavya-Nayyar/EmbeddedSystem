@@ -92,7 +92,7 @@ EmbeddedSystem/
 │
 ├── Firmware_Over_The_Air/
 │
-├── Fight The Timer/
+├── Fight_The_Timer_Game/
 │
 ├── UART_Driver/
 │
@@ -100,4 +100,4 @@ EmbeddedSystem/
 │
 ├── I2C_Driver/
 │
-└── CAN_Bus_Communication/
+└── CAN_Bus_/
