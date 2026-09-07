@@ -1,5 +1,11 @@
 # STM32 - ESP32 Walkie-Talkie
 
+## Project Photo
+
+<img width="1600" height="503" alt="Project" src="https://github.com/user-attachments/assets/a3e5864b-e225-47e3-9d6a-112779b15fa1" />
+
+---
+ 
 ## Hardware
 
 1. INMP441 I2S Microphone (2x)
