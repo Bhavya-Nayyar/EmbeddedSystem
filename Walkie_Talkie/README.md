@@ -2,6 +2,16 @@
 
 ## Note -: This project is still a work in progress.
 
+## Project Output
+
+1. ESP32 Output -:
+   <img width="430" height="435" alt="b" src="https://github.com/user-attachments/assets/ffcdb4c6-b270-4edc-beed-4bf21610debf" />
+
+2. STM32 Output -:
+   <img width="300" height="174" alt="a" src="https://github.com/user-attachments/assets/6011acf4-ea0f-4d0e-8a8a-2f9ae4eaf21f" />
+
+---
+
 ## Project Photo
 
 <img width="1600" height="503" alt="Project" src="https://github.com/user-attachments/assets/a3e5864b-e225-47e3-9d6a-112779b15fa1" />
