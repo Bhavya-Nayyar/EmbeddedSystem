@@ -4,6 +4,9 @@ dependencies:
   idf:
     version: '>=4.1.0'
   # # Put list of dependencies here
+  nopnop2002/mirf:
+    path: components/mirf/
+    git: https://github.com/nopnop2002/esp-idf-mirf.git
   # # For components maintained by Espressif:
   # component: "~1.0.0"
   # # For 3rd party components:
@@ -14,4 +17,4 @@ dependencies:
   #   # `public` flag doesn't have an effect dependencies of the `main` component.
   #   # All dependencies of `main` are public by default.
   #   public: true
-  k0i05/esp_ssd1306: ^1.2.7
+  

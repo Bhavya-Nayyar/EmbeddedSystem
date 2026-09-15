@@ -1,323 +1,315 @@
+/* USER CODE BEGIN Header */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdint.h>
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "nrf24l01p.h"
+#include <stdio.h>
 #include <string.h>
+/* USER CODE END Includes */
 
-#define NRF_PAYLOAD_SIZE 32
-#define I2S_FRAME_SAMPLES 32
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+/* USER CODE END PTD */
 
-#define CE_LOW() HAL_GPIO_WritePin(NRF_CE_GPIO_Port, NRF_CE_Pin, GPIO_PIN_RESET)
-#define CE_HIGH() HAL_GPIO_WritePin(NRF_CE_GPIO_Port, NRF_CE_Pin, GPIO_PIN_SET)
-#define CSN_LOW()                                                              \
-  HAL_GPIO_WritePin(NRF_CSN_GPIO_Port, NRF_CSN_Pin, GPIO_PIN_RESET)
-#define CSN_HIGH()                                                             \
-  HAL_GPIO_WritePin(NRF_CSN_GPIO_Port, NRF_CSN_Pin, GPIO_PIN_SET)
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+/* USER CODE END PD */
 
-#define NRF_CONFIG 0x00
-#define NRF_EN_AA 0x01
-#define NRF_EN_RXADDR 0x02
-#define NRF_SETUP_AW 0x03
-#define NRF_SETUP_RETR 0x04
-#define NRF_RF_CH 0x05
-#define NRF_RF_SETUP 0x06
-#define NRF_STATUS 0x07
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+/* USER CODE END PM */
 
-#define NRF_RX_ADDR_P0 0x0A
-#define NRF_TX_ADDR 0x10
-#define NRF_RX_PW_P0 0x11
-
-#define NRF_W_REGISTER 0x20
-#define NRF_R_REGISTER 0x00
-#define NRF_R_RX_PAYLOAD 0x61
-#define NRF_W_TX_PAYLOAD 0xA0
-#define NRF_FLUSH_TX 0xE1
-#define NRF_FLUSH_RX 0xE2
-
-#define NRF_STATUS_RX_DR (1U << 6)
-#define NRF_STATUS_TX_DS (1U << 5)
-#define NRF_STATUS_MAX_RT (1U << 4)
-
-static const uint8_t NRF_ADDRESS[5] = {0xD2, 0xD2, 0xD2, 0xD2, 0xD2};
-
-/* Explicit Peripheral Handles Required by Linker & stm32f4xx_it.c */
+/* Private variables ---------------------------------------------------------*/
 I2S_HandleTypeDef hi2s2;
 I2S_HandleTypeDef hi2s3;
-SPI_HandleTypeDef hspi1;
 DMA_HandleTypeDef hdma_spi2_tx;
 DMA_HandleTypeDef hdma_spi3_rx;
 
-/* Audio Buffers */
-static uint16_t i2s_rx_dma[I2S_FRAME_SAMPLES * 2];
-static uint16_t i2s_tx_dma[I2S_FRAME_SAMPLES * 2];
+SPI_HandleTypeDef hspi1;
 
-static uint8_t nrf_tx_payload[NRF_PAYLOAD_SIZE];
-static uint8_t nrf_rx_payload[NRF_PAYLOAD_SIZE];
+UART_HandleTypeDef huart2;
 
-volatile uint8_t mic_data_ready = 0;
-volatile uint8_t speaker_dma_busy = 0;
+/* USER CODE BEGIN PV */
+uint8_t rx_data[NRF24L01P_PAYLOAD_LENGTH];
 
-/* Function Prototypes */
+uint8_t nrf_address[5] = {'F', 'G', 'H', 'I', 'J'};
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void PeriphCommonClock_Config(void);
-void MX_GPIO_Init(void);
-void MX_DMA_Init(void);
-void MX_SPI1_Init(void);
-void MX_I2S2_Init(void);
-void MX_I2S3_Init(void);
+static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_I2S2_Init(void);
+static void MX_I2S3_Init(void);
+static void MX_SPI1_Init(void);
+static void MX_USART2_UART_Init(void);
+/* USER CODE BEGIN PFP */
+/* USER CODE END PFP */
 
-static void DWT_Delay_us(uint32_t us) {
-  uint32_t start = DWT->CYCCNT;
-  us *= (SystemCoreClock / 1000000);
-  while ((DWT->CYCCNT - start) < us)
-    ;
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+int __io_putchar(int ch) {
+  HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+
+  return ch;
 }
+/* USER CODE END 0 */
 
-static void NRF24_WriteReg(uint8_t reg, uint8_t value) {
-  uint8_t buf[2] = {NRF_W_REGISTER | (reg & 0x1F), value};
-  CSN_LOW();
-  HAL_SPI_Transmit(&hspi1, buf, 2, 10);
-  CSN_HIGH();
-}
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
 
-static uint8_t NRF24_ReadReg(uint8_t reg) {
-  uint8_t cmd = NRF_R_REGISTER | (reg & 0x1F);
-  uint8_t val = 0;
-  CSN_LOW();
-  HAL_SPI_Transmit(&hspi1, &cmd, 1, 10);
-  HAL_SPI_Receive(&hspi1, &val, 1, 10);
-  CSN_HIGH();
-  return val;
-}
+  /* USER CODE BEGIN 1 */
+  /* USER CODE END 1 */
 
-static void NRF24_WriteRegMulti(uint8_t reg, const uint8_t *data,
-                                uint8_t length) {
-  uint8_t cmd = NRF_W_REGISTER | (reg & 0x1F);
-  CSN_LOW();
-  HAL_SPI_Transmit(&hspi1, &cmd, 1, 10);
-  HAL_SPI_Transmit(&hspi1, (uint8_t *)data, length, 10);
-  CSN_HIGH();
-}
+  /* MCU Configuration--------------------------------------------------------*/
 
-static void NRF24_Command(uint8_t command) {
-  CSN_LOW();
-  HAL_SPI_Transmit(&hspi1, &command, 1, 10);
-  CSN_HIGH();
-}
-
-static void NRF24_RxMode(void) {
-  CE_LOW();
-  NRF24_WriteReg(NRF_CONFIG, 0x0B);
-  DWT_Delay_us(130);
-  CE_HIGH();
-}
-
-static void NRF24_TxMode(void) {
-  CE_LOW();
-  NRF24_WriteReg(NRF_CONFIG, 0x0A);
-  DWT_Delay_us(130);
-}
-
-static void NRF24_Init(void) {
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-
-  CE_LOW();
-  CSN_HIGH();
-  HAL_Delay(10);
-
-  NRF24_WriteReg(NRF_CONFIG, 0x08);
-  NRF24_WriteReg(NRF_EN_AA, 0x00);
-  NRF24_WriteReg(NRF_EN_RXADDR, 0x01);
-  NRF24_WriteReg(NRF_SETUP_AW, 0x03);
-  NRF24_WriteReg(NRF_SETUP_RETR, 0x00);
-  NRF24_WriteReg(NRF_RF_CH, 76);
-  NRF24_WriteReg(NRF_RF_SETUP, 0x0E);
-
-  NRF24_WriteRegMulti(NRF_RX_ADDR_P0, NRF_ADDRESS, 5);
-  NRF24_WriteRegMulti(NRF_TX_ADDR, NRF_ADDRESS, 5);
-  NRF24_WriteReg(NRF_RX_PW_P0, NRF_PAYLOAD_SIZE);
-
-  NRF24_WriteReg(NRF_STATUS,
-                 NRF_STATUS_RX_DR | NRF_STATUS_TX_DS | NRF_STATUS_MAX_RT);
-  NRF24_Command(NRF_FLUSH_TX);
-  NRF24_Command(NRF_FLUSH_RX);
-
-  NRF24_RxMode();
-}
-
-static uint8_t NRF24_Transmit(uint8_t *payload) {
-  NRF24_TxMode();
-
-  uint8_t cmd = NRF_W_TX_PAYLOAD;
-  NRF24_WriteReg(NRF_STATUS, NRF_STATUS_TX_DS | NRF_STATUS_MAX_RT);
-  NRF24_Command(NRF_FLUSH_TX);
-
-  CSN_LOW();
-  HAL_SPI_Transmit(&hspi1, &cmd, 1, 10);
-  HAL_SPI_Transmit(&hspi1, payload, NRF_PAYLOAD_SIZE, 10);
-  CSN_HIGH();
-
-  CE_HIGH();
-  DWT_Delay_us(15);
-  CE_LOW();
-
-  uint32_t timeout = 1000;
-  while (timeout--) {
-    uint8_t status = NRF24_ReadReg(NRF_STATUS);
-    if (status & NRF_STATUS_TX_DS) {
-      NRF24_WriteReg(NRF_STATUS, NRF_STATUS_TX_DS);
-      NRF24_RxMode();
-      return 1;
-    }
-    if (status & NRF_STATUS_MAX_RT) {
-      NRF24_WriteReg(NRF_STATUS, NRF_STATUS_MAX_RT);
-      NRF24_RxMode();
-      return 0;
-    }
-    DWT_Delay_us(10);
-  }
-  NRF24_RxMode();
-  return 0;
-}
-
-static uint8_t NRF24_CheckRx(void) {
-  return (NRF24_ReadReg(NRF_STATUS) & NRF_STATUS_RX_DR) != 0;
-}
-
-static void NRF24_ReadPayload(uint8_t *payload) {
-  uint8_t cmd = NRF_R_RX_PAYLOAD;
-  CSN_LOW();
-  HAL_SPI_Transmit(&hspi1, &cmd, 1, 10);
-  HAL_SPI_Receive(&hspi1, payload, NRF_PAYLOAD_SIZE, 10);
-  CSN_HIGH();
-  NRF24_WriteReg(NRF_STATUS, NRF_STATUS_RX_DR);
-}
-
-static int32_t I2S_ReadSample(uint16_t *buffer, uint32_t index) {
-  uint32_t high = buffer[index * 2];
-  uint32_t low = buffer[(index * 2) + 1];
-  return (int32_t)((high << 16) | low);
-}
-
-static void I2S_WriteSample(uint16_t *buffer, uint32_t index, int32_t sample) {
-  buffer[index * 2] = (uint16_t)(sample >> 16);
-  buffer[(index * 2) + 1] = (uint16_t)(sample & 0xFFFF);
-}
-
-void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
-  if (hi2s->Instance == SPI3) {
-    mic_data_ready = 1;
-  }
-}
-
-void HAL_I2S_TxCpltCallback(I2S_HandleTypeDef *hi2s) {
-  if (hi2s->Instance == SPI2) {
-    speaker_dma_busy = 0;
-  }
-}
-
-int main(void) {
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+
+  /* USER CODE BEGIN Init */
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
   SystemClock_Config();
+
+  /* Configure the peripherals common clocks */
   PeriphCommonClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_I2S2_Init();
   MX_I2S3_Init();
   MX_SPI1_Init();
+  MX_USART2_UART_Init();
+  /* USER CODE BEGIN 2 */
 
-  NRF24_Init();
+  printf("\r\n================================\r\n");
+  printf("STM32 nRF24L01 Receiver\r\n");
+  printf("================================\r\n");
 
-  if (HAL_I2S_Receive_DMA(&hi2s3, i2s_rx_dma, I2S_FRAME_SAMPLES * 2) !=
-      HAL_OK) {
-    Error_Handler();
-  }
+  /*
+   * Initialize nRF24:
+   *
+   * Channel = 2476 MHz
+   * RF channel number = 76
+   * Data rate = 1 Mbps
+   * Payload = 32 bytes
+   */
+  nrf24l01p_rx_init(2476, _1Mbps);
 
+  /*
+   * Set the same 5-byte address used by ESP32.
+   *
+   * RX_ADDR_P0 = FGHIJ
+   * TX_ADDR    = FGHIJ
+   */
+  nrf24l01p_set_rx_address(nrf_address);
+  nrf24l01p_set_tx_address(nrf_address);
+
+  HAL_Delay(5);
+
+  /*
+   * Read back important registers.
+   */
+  printf("STATUS    = 0x%c\r\n", nrf24l01p_get_status());
+
+  printf("FIFO      = 0x%c\r\n", nrf24l01p_get_fifo_status());
+
+  printf("nRF24 initialized\r\n");
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1) {
-    if (NRF24_CheckRx()) {
-      NRF24_ReadPayload(nrf_rx_payload);
-      for (int i = 0; i < I2S_FRAME_SAMPLES; i++) {
-        int8_t sample8 = (int8_t)((int16_t)nrf_rx_payload[i] - 128);
-        int32_t sample32 = ((int32_t)sample8) << 24;
-        I2S_WriteSample(i2s_tx_dma, i, sample32);
-      }
+    /* Poll nRF24 continuously inside the loop */
+    if (nrf24l01p_data_ready()) {
+      /* Read 32-byte packet */
+      nrf24l01p_rx_receive(rx_data);
 
-      if (!speaker_dma_busy) {
-        speaker_dma_busy = 1;
-        HAL_I2S_Transmit_DMA(&hi2s2, i2s_tx_dma, I2S_FRAME_SAMPLES * 2);
+      /* Print received data */
+      printf("RX: ");
+      for (uint8_t i = 0; i < NRF24L01P_PAYLOAD_LENGTH; i++) {
+        // Print as ASCII characters since the ESP32 is sending strings ("PING
+        // X")
+        if (rx_data[i] >= 32 && rx_data[i] <= 126) {
+          printf("%c", rx_data[i]);
+        } else {
+          printf(".");
+        }
       }
+      printf("\r\n");
     }
 
-    if (mic_data_ready) {
-      mic_data_ready = 0;
-      for (int i = 0; i < I2S_FRAME_SAMPLES; i++) {
-        int32_t sample = I2S_ReadSample(i2s_rx_dma, i);
+    // Tiny delay to prevent flooding the CPU
+    HAL_Delay(1);
 
-        // Shift right by 23 to scale the signed 24-bit MSB-aligned sample to
-        // 8-bit
-        int8_t sample8 = (int8_t)(sample >> 23);
+    /* USER CODE END WHILE */
 
-        // Convert signed int8 (-128 to 127) to unsigned uint8 (0 to 255) for
-        // NRF24
-        nrf_tx_payload[i] = (uint8_t)(sample8 + 128);
-      }
-      NRF24_Transmit(nrf_tx_payload);
-    }
+    /* USER CODE BEGIN 3 */
   }
+  /* USER CODE END 3 */
 }
 
-/* System Clock & CubeMX Hardware Inits */
-
-void SystemClock_Config(void) {
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
+  /** Configure the main internal regulator output voltage
+  */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
 
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 360;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 16;
+  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
     Error_Handler();
   }
 
-  if (HAL_PWREx_EnableOverDrive() != HAL_OK) {
-    Error_Handler();
-  }
-
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
-                                RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
     Error_Handler();
   }
 }
 
-void PeriphCommonClock_Config(void) {
+/**
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
+void PeriphCommonClock_Config(void)
+{
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-  PeriphClkInitStruct.PeriphClockSelection =
-      RCC_PERIPHCLK_I2S_APB1 | RCC_PERIPHCLK_I2S_APB2;
+  /** Initializes the peripherals clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S_APB1;
   PeriphClkInitStruct.PLLI2S.PLLI2SN = 192;
-  PeriphClkInitStruct.PLLI2S.PLLI2SM = 8;
+  PeriphClkInitStruct.PLLI2S.PLLI2SP = RCC_PLLI2SP_DIV2;
+  PeriphClkInitStruct.PLLI2S.PLLI2SM = 16;
   PeriphClkInitStruct.PLLI2S.PLLI2SR = 2;
-
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK) {
+  PeriphClkInitStruct.PLLI2S.PLLI2SQ = 2;
+  PeriphClkInitStruct.PLLI2SDivQ = 1;
+  PeriphClkInitStruct.I2sApb1ClockSelection = RCC_I2SAPB1CLKSOURCE_PLLI2S;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
     Error_Handler();
   }
 }
 
-void MX_SPI1_Init(void) {
+/**
+  * @brief I2S2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2S2_Init(void)
+{
+
+  /* USER CODE BEGIN I2S2_Init 0 */
+  /* USER CODE END I2S2_Init 0 */
+
+  /* USER CODE BEGIN I2S2_Init 1 */
+  /* USER CODE END I2S2_Init 1 */
+  hi2s2.Instance = SPI2;
+  hi2s2.Init.Mode = I2S_MODE_MASTER_TX;
+  hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
+  hi2s2.Init.DataFormat = I2S_DATAFORMAT_16B;
+  hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_16K;
+  hi2s2.Init.CPOL = I2S_CPOL_LOW;
+  hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
+  hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  if (HAL_I2S_Init(&hi2s2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2S2_Init 2 */
+  /* USER CODE END I2S2_Init 2 */
+
+}
+
+/**
+  * @brief I2S3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2S3_Init(void)
+{
+
+  /* USER CODE BEGIN I2S3_Init 0 */
+  /* USER CODE END I2S3_Init 0 */
+
+  /* USER CODE BEGIN I2S3_Init 1 */
+  /* USER CODE END I2S3_Init 1 */
+  hi2s3.Instance = SPI3;
+  hi2s3.Init.Mode = I2S_MODE_MASTER_RX;
+  hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
+  hi2s3.Init.DataFormat = I2S_DATAFORMAT_16B;
+  hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
+  hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_16K;
+  hi2s3.Init.CPOL = I2S_CPOL_LOW;
+  hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
+  hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
+  if (HAL_I2S_Init(&hi2s3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2S3_Init 2 */
+  /* USER CODE END I2S3_Init 2 */
+
+}
+
+/**
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
+
+  /* USER CODE BEGIN SPI1_Init 0 */
+  /* USER CODE END SPI1_Init 0 */
+
+  /* USER CODE BEGIN SPI1_Init 1 */
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
@@ -330,72 +322,127 @@ void MX_SPI1_Init(void) {
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi1.Init.CRCPolynomial = 10;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK) {
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
     Error_Handler();
   }
+  /* USER CODE BEGIN SPI1_Init 2 */
+  /* USER CODE END SPI1_Init 2 */
+
 }
 
-void MX_I2S2_Init(void) {
-  hi2s2.Instance = SPI2;
-  hi2s2.Init.Mode = I2S_MODE_MASTER_TX;
-  hi2s2.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s2.Init.DataFormat = I2S_DATAFORMAT_24B;
-  hi2s2.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s2.Init.AudioFreq = I2S_AUDIOFREQ_16K;
-  hi2s2.Init.CPOL = I2S_CPOL_LOW;
-  hi2s2.Init.ClockSource = I2S_CLOCK_PLL;
-  hi2s2.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-  if (HAL_I2S_Init(&hi2s2) != HAL_OK) {
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
     Error_Handler();
   }
+  /* USER CODE BEGIN USART2_Init 2 */
+  /* USER CODE END USART2_Init 2 */
+
 }
 
-void MX_I2S3_Init(void) {
-  hi2s3.Instance = SPI3;
-  hi2s3.Init.Mode = I2S_MODE_MASTER_RX;
-  hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
-  hi2s3.Init.DataFormat = I2S_DATAFORMAT_24B;
-  hi2s3.Init.MCLKOutput = I2S_MCLKOUTPUT_DISABLE;
-  hi2s3.Init.AudioFreq = I2S_AUDIOFREQ_16K;
-  hi2s3.Init.CPOL = I2S_CPOL_LOW;
-  hi2s3.Init.ClockSource = I2S_CLOCK_PLL;
-  hi2s3.Init.FullDuplexMode = I2S_FULLDUPLEXMODE_DISABLE;
-  if (HAL_I2S_Init(&hi2s3) != HAL_OK) {
-    Error_Handler();
-  }
-}
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
 
-void MX_DMA_Init(void) {
+  /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
 
-  /* DMA1_Stream4_IRQn - SPI2_TX */
+  /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 
-  /* DMA1_Stream0_IRQn - SPI3_RX */
-  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 }
 
-void MX_GPIO_Init(void) {
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
   GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
 
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
+  /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  HAL_GPIO_WritePin(NRF_CE_GPIO_Port, NRF_CE_Pin, GPIO_PIN_RESET);
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(NRF_CSN_GPIO_Port, NRF_CSN_Pin, GPIO_PIN_SET);
 
-  GPIO_InitStruct.Pin = NRF_CE_Pin | NRF_CSN_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(NRF_CE_GPIO_Port, NRF_CE_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : B1_Pin */
+  GPIO_InitStruct.Pin = B1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : NRF_CSN_Pin NRF_CE_Pin */
+  GPIO_InitStruct.Pin = NRF_CSN_Pin|NRF_CE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-  HAL_GPIO_Init(NRF_CE_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
-void Error_Handler(void) {
-  __disable_irq();
-  while (1) {
-  }
+/* USER CODE BEGIN 4 */
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* USER CODE END Error_Handler_Debug */
 }
+#ifdef USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
